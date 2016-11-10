@@ -5,14 +5,19 @@
  */
 package bot2;
 
+
 /**
  *
  * @author Crash
  */
 import java.io.File;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import org.sikuli.api.DesktopScreenRegion;
 import org.sikuli.api.ImageTarget;
@@ -21,7 +26,7 @@ import org.sikuli.api.ScreenRegion;
 import org.sikuli.api.robot.desktop.DesktopMouse;
 
 
-public class Bot2 {
+public class Bot2 implements Runnable{
 
     public static ImageTarget baropen, barclose, donate,
             valk, wb, wiz, elixir, gold, delixir, reload, 
@@ -36,6 +41,7 @@ public class Bot2 {
     public static long reloaddelay = 0;
     public static List<ScreenRegion> rs;
     public static ScreenRegion s;
+    public static String lastcmd = "null";
     public static void sieve() throws Exception{
         baropen = createImageTarget("./baropen.png");
         barclose = createImageTarget("./barclose.png");
@@ -54,6 +60,28 @@ public class Bot2 {
         tryagain = createImageTarget("./tryagain.png");
         archer = createImageTarget("./archer.png");
         
+    }
+    public void run(){
+        try{
+            ServerSocket listener = new ServerSocket(5000);
+            try {
+                while (true) {
+                    Socket socket = listener.accept();
+                    try {
+                        PrintWriter out =
+                            new PrintWriter(socket.getOutputStream(), true);
+                        out.println(lastcmd);
+                    } finally {
+                        socket.close();
+                    }
+                }
+            }
+            finally {
+                listener.close();
+            }
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
     }
     public static ImageTarget createImageTarget(String filename) throws Exception{
         return new ImageTarget(new File(filename));
@@ -183,8 +211,12 @@ public class Bot2 {
         }
         return true;
     }
-
+    public static void setcmd(String a){
+        lastcmd = a;
+    }
     public static void main(String[] args) throws MalformedURLException {
+        
+        (new Thread(new Bot2())).start();
         try {
             sieve();
             users = new ArrayList<ImageTarget>();
@@ -215,23 +247,23 @@ public class Bot2 {
             if (wait(tryagain)){
                 click(tryagain);
             }else if (wait(reload)) {
-                    System.out.println("Reload");
+                    setcmd("Reload");
                     delay(3*60*1000);
                     click(reload);
                     delay(5000);
-                    System.out.println("End Reload");
+                    setcmd("End Reload");
                 } else if (find(baropen)) {
-                    System.out.println("baropen");
+                    setcmd("baropen");
                     delay(20*1000);
                     click(baropen);
                     delay(3000);
-                    System.out.println("end baropen");
+                    setcmd("end baropen");
                 } else {
-                    System.out.println("Loop users");
+                    setcmd("Loop users");
                     for (int i = 0; i < users.size(); i++){
                         //ImageTarget user = users.get(i);
                         cuser = users.get(i);
-                        if ((/*cuser == crash ||*/ getmillis() - ban[i] > 10*60*1000) && find(users.get(i))){
+                        if ((/*cuser == crash ||*/ getmillis() - ban[i] > 3*60*1000) && find(users.get(i))){
                             //if (ban[i] != 0){
                             //    if (getmillis() - ban[i] < 2*60*1000) continue;
                             //}
@@ -244,7 +276,7 @@ public class Bot2 {
                             ban[i] = getmillis();
                         }
                     }
-                    System.out.println("end loop users");
+                    setcmd("end loop users");
                 }
                 //delay(2*60*1000);
                 System.gc();
