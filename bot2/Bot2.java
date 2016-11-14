@@ -191,7 +191,7 @@ public class Bot2 implements Runnable{
             if (difx < e && dify < e){
                 mouse.click(sl);
                 delay(500);
-                if (cuser == crash || cuser == spivak) click(earth);
+                if (cuser == crash) click(poison);
                 click(wiz, 7);
 				click(archer, 2);
                 click(trunk);
@@ -212,6 +212,7 @@ public class Bot2 implements Runnable{
         return true;
     }
     public static void setcmd(String a){
+	System.out.println(a);
         lastcmd = a;
     }
     public static void main(String[] args) throws MalformedURLException {
